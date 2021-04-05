@@ -1,0 +1,6 @@
+---
+title: "Data Memo"
+author: "Soteria Reid"
+date: "4/5/2021"
+output: html_document
+---
