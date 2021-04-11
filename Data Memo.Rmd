@@ -1,8 +1,75 @@
 ---
-title: "Data Memo"
-author: "Soteria Reid"
-date: "4/5/2021"
+title: "STAT 301-3: Data Memo"
+author: "Natalie Ghidali, Soteria Reid, Rebecca Siems, Daniella Tincani"
+date: "4/11/2021"
 output: html_document
 ---
 
 ## Project Timeline
+
+### **Final Project Components**
+
+1.  Introduce Data & Research Question
+
+2.  Perform Exploratory Data Analysis
+
+3.  Model Fitting
+
+4.  Performance Evaluation of Models
+
+5.  Performance of Best Model on Performance Set
+
+6.  Debrief & Next Steps
+
+7.  Bias in Data
+
+8.  Executive Summary and Code Book
+
+**Intro & RQ** - April 14th
+
+**EDA** - April 21st
+
+**Models** - May 5th
+
+**Model Eval** - May 12th
+
+**Best Model Test** - May 19th
+
+**Debrief** - May 26th
+
+**Bias** - June 2nd
+
+**Executive Summary First Draft** - June 6th
+
+**Submission** - Monday June 7th
+
+## Overview of Data
+
+We will be working with data on the amount of aid given through the Tuition Assistance Program (TAP) for New York universities from the years 2000-2019. The TAP is New York's largest financial aid grant program, assisting eligible New York residents pursue higher education. The dataset includes the dollar amounts of aid given to each recipient, as well as information regarding each recipients' family income, age group, university sector (e.g., public or private), level of study, and more. The dataset was provided by the New York State Higher Education Services Corporation, and it was downloaded from a New York state government data catalog. The dataset has 288,000 rows, but we intend on focusing only on the years 2014-2019, which will dramatically reduce the size. Many of the variables are categorical because they are demographic information, but the awarded dollar amounts are numerical. There is no missingness, and we will only be using one dataset.
+
+## Research Questions
+
+Machine Learning Problems:
+
+1.  Predict sector type (either Public or Private) the applicant is applying for using the remaining variables
+2.  Predict TAP recipient dollars (total dollar amount granted by TAP) from the remaining variables.
+
+Data Exploration:
+
+1.  How did the distribution of sector type change over time?
+
+2.  How did the average grant amount or total grant amount change over time?
+
+3.  How does income affect grant amounts? 
+
+## Potential Issues
+
+Potential issues may arise from the size and complexity of the data. Many of the predictor columns are factors with many distinct levels. We will need to convert these all to dummy variables. The number of factors to consider could also add difficulty to the exploratory data analysis, as many distinct avenues will need to be considered. The size of the dataset could also pose a problem. Larger datasets can have, for some models, exponentially longer training times. In our case the full dataset has over 288 thousand rows. It may be necessary to do some initial pre-processing and use a smaller section of the dataset if training times prove to be prohibitively long on the expansive training dataset.
+
+## Potential Impacts of Bias in Data
+
+As for the data present, the age categories do not occur at regular intervals and include large gaps. This intergenerational data could prevent us from being able to get a reading on the impact age group has on TAP funds received.
+
+As for data uncollected, some demographic data was collected while other data was not. The lack of data around gender identity, sexual orientation, race, etc. will prevent us from assessing the impact of those categories on TAP funds received even though it is more than likely a factor.
+
+\
