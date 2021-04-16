@@ -8,12 +8,29 @@ library(skimr)
 library(janitor)
 
 # reading in data
-tap_dat <- read_csv("data/tap_dat.csv") %>% 
-  clean_names()
+tap_data <- read_csv("data/tap_dat.csv") %>% 
+  clean_names() %>%
+  mutate(
+    level = factor(level),
+    tap_level_of_study = factor(tap_level_of_study),
+    sector_type = factor(sector_type),
+    tap_sector_group = factor(tap_sector_group),
+    recipient_age_group = ordered(recipient_age_group, 
+                                  levels = c("under age 22",  "age 22 - 25", "age 26 - 35",  "age 36 - 50",  "over age 50")),
+    tap_financial_status = factor(tap_financial_status),
+    tap_award_schedule = factor(tap_award_schedule),
+    tap_degree_or_non_degree = factor(tap_degree_or_non_degree),
+    tap_schedule_letter = factor(tap_schedule_letter),
+    income = as.numeric(sub(",","",str_extract(income_by_1_000_range, "\\d+,*\\d*")))
+  ) %>%
+  select(-income_by_1_000_range, -income_by_5_000_range, -income_by_10_000_range)
 
 # skim full dataset
-skim(tap_dat) %>% view()
+skim(tap_data) %>% view()
 
 # skim outcome variable
-skim(tap_dat$sector_type)
+skim(tap_data$sector_type)
+
+
+
 

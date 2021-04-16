@@ -1,0 +1,143 @@
+---
+title: "tapdance_eda"
+author: "Natalie Ghidali"
+date: "4/15/2021"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+# loading packages and set seed
+```{r}
+library(tidyverse)
+library(tidymodels)
+library(skimr)
+library(janitor)
+
+set.seed(42)
+```
+
+# Initial overview of data
+
+### Load and clean dataset
+```{r}
+tap_data <- read_csv("data/tap_dat.csv") %>% 
+  clean_names() %>%
+  mutate(
+    level = factor(level),
+    tap_level_of_study = factor(tap_level_of_study),
+    sector_type = factor(sector_type),
+    tap_sector_group = factor(tap_sector_group),
+    recipient_age_group = ordered(recipient_age_group, 
+                                  levels = c("under age 22",  "age 22 - 25", "age 26 - 35",  "age 36 - 50",  "over age 50")),
+    tap_financial_status = factor(tap_financial_status),
+    tap_award_schedule = factor(tap_award_schedule),
+    tap_degree_or_non_degree = factor(tap_degree_or_non_degree),
+    tap_schedule_letter = factor(tap_schedule_letter),
+    income = as.numeric(sub(",","",str_extract(income_by_1_000_range, "\\d+,*\\d*")))
+  ) %>%
+  select(-income_by_1_000_range, -income_by_5_000_range, -income_by_10_000_range)
+
+# skim full dataset
+skim(tap_data)
+```
+
+### Skim outcome variable
+```{r}
+skim(tap_data$sector_type)
+```
+
+# Thorough univariate investigation of response and predictor variables
+
+### Academic Year
+```{r}
+
+```
+
+### Level
+```{r}
+
+```
+
+### TAP Level of Study
+```{r}
+
+```
+
+### Sector Type
+```{r}
+
+```
+
+### TAP Sector Group
+```{r}
+
+```
+
+### Recipient Age Group
+```{r}
+
+```
+
+### TAP Financial Status
+```{r}
+
+```
+
+### TAP Award Schedule
+```{r}
+
+```
+
+### TAP Degree or NonDegree
+```{r}
+
+```
+
+### TAP Schedule Letter
+```{r}
+
+```
+
+### Income by $1000 Range
+```{r}
+
+```
+
+### Income by $5000 Range
+```{r}
+
+```
+
+### Income by $10000 Range
+```{r}
+
+```
+
+### TAP Recipient Headcount
+```{r}
+
+```
+
+### TAP Recipient FTEs
+```{r}
+
+```
+
+### TAP Recipient Dollars
+```{r}
+
+```
+
+# Interesting/important relationships between and among response variable(s) and predictor variables
+```{r}
+
+```
+
+# General variable exploration
+```{r}
+
+```
+
