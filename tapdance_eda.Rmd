@@ -47,13 +47,26 @@ tap_data <- read_csv("data/tap_dat.csv") %>%
 
 ### Skim
 
-The resulting dataset contains 227,760 observations and 14 features. Of the 14 variables, 9 are factors and 5 are numeric.  
+The resulting dataset contains 227,760 observations and 14 features. Of the 14 variables, 9 are factors and 5 are numeric. The variable `tap_recipient_ft_es`, which refers to the number of recipients has two missing values. No other variable has any missingness.
+
 ```{r}
 # skim full dataset
 skim(tap_data)
 ```
 
 ### Skim outcome variable
+
+```{r}
+tap_data %>% ggplot(aes(sector_type, fill = sector_type)) +
+  geom_bar() +
+  scale_fill_discrete(
+    guide = FALSE
+  ) +
+  labs(
+    title = "Institution Type: Private vs. Public"
+  )
+```
+
 ```{r}
 skim(tap_data$sector_type)
 ```
