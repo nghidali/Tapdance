@@ -21,6 +21,8 @@ set.seed(42)
 
 # Initial overview of data
 
+### Source
+
 ### Load and clean dataset
 ```{r}
 tap_data <- read_csv("data/tap_dat.csv") %>% 
@@ -40,6 +42,13 @@ tap_data <- read_csv("data/tap_dat.csv") %>%
   ) %>%
   select(-income_by_1_000_range, -income_by_5_000_range, -income_by_10_000_range)
 
+
+```
+
+### Skim
+
+The resulting dataset contains 227,760 observations and 14 features. Of the 14 variables, 9 are factors and 5 are numeric.  
+```{r}
 # skim full dataset
 skim(tap_data)
 ```
