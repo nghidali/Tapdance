@@ -2,7 +2,12 @@
 title: "tapdance_eda"
 author: "Natalie Ghidali"
 date: "4/15/2021"
-output: html_document
+output: 
+  html_document:
+      number_sections: true
+      toc: true
+      theme: united
+      code_folding: hide
 ---
 
 ```{r setup, include=FALSE}
@@ -10,7 +15,7 @@ knitr::opts_chunk$set(echo = TRUE)
 ```
 
 # loading packages and set seed
-```{r}
+```{r, message = FALSE}
 library(tidyverse)
 library(tidymodels)
 library(skimr)
@@ -23,8 +28,10 @@ set.seed(42)
 
 ### Source
 
+We will be working with data on the amount of aid given through the Tuition Assistance Program (TAP) for New York universities from the years 2000-2019. The TAP is New York's largest financial aid grant program, assisting eligible New York residents pursue higher education. The dataset includes the dollar amounts of aid given to each recipient, as well as information regarding each recipients' family income, age group, university sector (e.g., public or private), level of study, and more. The dataset was provided by the New York State Higher Education Services Corporation, and it was downloaded from a New York state government data catalog. The dataset has about 288,000 rows, but we intend on focusing only on the years 2014-2019, which will reduce its size. 
+
 ### Load and clean dataset
-```{r}
+```{r, message = FALSE}
 tap_data <- read_csv("data/tap_dat.csv") %>% 
   clean_names() %>%
   mutate(
@@ -40,14 +47,14 @@ tap_data <- read_csv("data/tap_dat.csv") %>%
     tap_schedule_letter = factor(tap_schedule_letter),
     income = as.numeric(sub(",","",str_extract(income_by_1_000_range, "\\d+,*\\d*")))
   ) %>%
-  select(-income_by_1_000_range, -income_by_5_000_range, -income_by_10_000_range)
-
-
+  select(-income_by_1_000_range, -income_by_5_000_range, -income_by_10_000_range) %>% 
+  filter(academic_year >= 2014)
 ```
+
 
 ### Skim
 
-The resulting dataset contains 227,760 observations and 14 features. Of the 14 variables, 9 are factors and 5 are numeric. The variable `tap_recipient_ft_es`, which refers to the number of recipients has two missing values. No other variable has any missingness.
+The resulting dataset contains 56,846 observations and 14 features. Of the 14 variables, 9 are factors and 5 are numeric. The variable `tap_recipient_ft_es`, which refers to the number of TAP recipients. There are no instances of missingness in the dataset.
 
 ```{r}
 # skim full dataset
@@ -64,7 +71,8 @@ tap_data %>% ggplot(aes(sector_type, fill = sector_type)) +
   ) +
   labs(
     title = "Institution Type: Private vs. Public"
-  )
+  ) +
+  theme_bw()
 ```
 
 ```{r}
