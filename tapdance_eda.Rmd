@@ -88,6 +88,7 @@ skim(tap_data$sector_type)
 ggplot(tap_data, aes(academic_year)) +
   geom_histogram(bins = 20)
 ```
+
 Academic year is right skewed, there do not appear to be significant outliers.
 
 ### Level
@@ -95,6 +96,7 @@ Academic year is right skewed, there do not appear to be significant outliers.
 ggplot(tap_data, aes(level)) +
   geom_bar()
 ```
+
 We can see there is a severe class imbalance for the level variable with far more undergraduate students than graduate students.
 
 ### TAP Level of Study
@@ -102,6 +104,7 @@ We can see there is a severe class imbalance for the level variable with far mor
 ggplot(tap_data, aes(tap_level_of_study)) +
   geom_bar()
 ```
+
 We can see there is a severe class imbalance with far more students in the lower levels of the education system, which makes sense.
 
 ### Sector Type
@@ -109,6 +112,7 @@ We can see there is a severe class imbalance with far more students in the lower
 ggplot(tap_data, aes(sector_type)) +
   geom_bar()
 ```
+
 Sector type is fairly balanced, with a similar number of private and public institutions.
 
 ### TAP Sector Group
@@ -117,6 +121,7 @@ ggplot(tap_data, aes(tap_sector_group)) +
   geom_bar() +
   coord_flip()
 ```
+
 Tap sector group is imbalanced.
 
 ### Recipient Age Group
@@ -124,6 +129,7 @@ Tap sector group is imbalanced.
 ggplot(tap_data, aes(recipient_age_group)) +
   geom_bar()
 ```
+
 Recipient age group has a fairly normal distribution, with perhapse a slight right skew.
 
 ### TAP Financial Status
@@ -131,6 +137,7 @@ Recipient age group has a fairly normal distribution, with perhapse a slight rig
 ggplot(tap_data, aes(tap_financial_status)) +
   geom_bar()
 ```
+
 TAP financial status is imbalanced, with more financially independent cases than financially dependent.
 
 ### TAP Award Schedule
@@ -138,6 +145,7 @@ TAP financial status is imbalanced, with more financially independent cases than
 ggplot(tap_data, aes(tap_award_schedule)) +
   geom_bar()
 ```
+
 TAP award schedule is imbalanced, there are far more dependently scheduled the independently scheduled or married with no dependents.
 
 ### TAP Degree or NonDegree
@@ -145,6 +153,7 @@ TAP award schedule is imbalanced, there are far more dependently scheduled the i
 ggplot(tap_data, aes(tap_degree_or_non_degree)) +
   geom_bar()
 ```
+
 Tap degre or non degree is very imbalanced, with far more counts of degree then non degree.
 
 ### TAP Schedule Letter
@@ -152,6 +161,7 @@ Tap degre or non degree is very imbalanced, with far more counts of degree then 
 ggplot(tap_data, aes(tap_schedule_letter)) +
   geom_bar()
 ```
+
 TAP schedule letter is very imbalanced. There are many Es in comparison to a relatively low count for other classes.
 
 ### Income
@@ -159,6 +169,7 @@ TAP schedule letter is very imbalanced. There are many Es in comparison to a rel
 ggplot(tap_data, aes(income)) +
   geom_histogram(bins = 20)
 ```
+
 There are many more students at the lower end of the income spectrum vs at the higher end. Incomes do not exceed $80,000.
 
 ### TAP Recipient Headcount
@@ -167,6 +178,7 @@ ggplot(tap_data, aes(tap_recipient_headcount)) +
   geom_histogram(bins = 50) +
   xlim(c(0,50))
 ```
+
 The TAP recipient headcount is heavily right skewed with a very long tail.
 
 
@@ -176,6 +188,7 @@ ggplot(tap_data, aes(tap_recipient_ft_es)) +
   geom_histogram() +
   xlim(0,50)
 ```
+
 The TAP recipient ftes is heavily right skewed with a very long tail.
 
 ### TAP Recipient Dollars
@@ -184,6 +197,7 @@ ggplot(tap_data, aes(tap_recipient_dollars)) +
   geom_histogram() +
   xlim(0,200000)
 ```
+
 The TAP recipient dollars is heavily right skewed with a very long tail.
 
 # Interesting/important relationships between and among response variable(s) and predictor variables
