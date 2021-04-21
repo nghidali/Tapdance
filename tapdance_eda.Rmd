@@ -210,3 +210,35 @@ The TAP recipient dollars is heavily right skewed with a very long tail.
 
 ```
 
+## Relationships between response variables and predictor variables
+
+# Relationship between sector type and amount of aid awarded
+ggplot(tap_data, aes(x = sector_type, y = tap_recipient_dollars)) +
+  geom_bar(stat = "identity") +
+  labs(x = "Sector Type", y = "Total Aid Given (USD)", title = "Total TAP Aid Given by Sector Type") +
+  theme_minimal()
+
+# There was more total aid allotted to students attending public schools than private schools
+
+# Income Level vs Sector Type
+ggplot(tap_data, aes(x = sector_type, y = income)) +
+  geom_boxplot() +
+  labs(x = "Sector Type", y = "Income in USD", title = "Average Income Level Among Students by Sector Type") +
+  theme_minimal()
+
+# Higher average income among students attending public schools, which raises questions about whether more public school students are financially independent, why do public school students receive more aid overall?
+# Also the average isn't that much higher among public school students
+
+# Financial Status and income
+
+ggplot(tap_data, aes(x = tap_financial_status, y = income)) +
+  geom_boxplot() +
+  labs(x = "Financial Status", y = "Income (USD)", title = "Average Income of TAP Recipients by Financial Status") +
+  theme_minimal()
+
+# Dependents have an average higher income than students who are financially independent
+
+# Income vs TAP Money Given
+
+ggplot(tap_data, aes(x = income, y = tap_recipient_dollars)) +
+  geom_line()
