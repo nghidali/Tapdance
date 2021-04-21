@@ -55,3 +55,9 @@ ggplot(tap_data, aes(tap_award_schedule)) +
 
 ggplot(tap_data, aes(tap_degree_or_non_degree)) +
   geom_bar()
+
+# by year
+tap_data %>% 
+  group_by(academic_year) %>% 
+ggplot(aes(academic_year, tap_recipient_headcount)) +
+  geom_col()
