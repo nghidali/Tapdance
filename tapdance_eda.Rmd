@@ -200,17 +200,7 @@ ggplot(tap_data, aes(tap_recipient_dollars)) +
 
 The TAP recipient dollars is heavily right skewed with a very long tail.
 
-# Interesting/important relationships between and among response variable(s) and predictor variables
-```{r}
-
-```
-
-# General variable exploration
-```{r}
-
-```
-
-## Relationships between response variables and predictor variables
+# Relationships between response variables and predictor variables
 
 We first wanted to see the distribution of the total amount of aid given to students attending private or public schools. 
 
