@@ -30,7 +30,7 @@ set.seed(42)
 
 We will be working with data on the amount of aid given through the Tuition Assistance Program (TAP) for New York universities from the years 2000-2019. The TAP is New York's largest financial aid grant program, assisting eligible New York residents pursue higher education. The dataset includes the dollar amounts of aid given to each recipient, as well as information regarding each recipients' family income, age group, university sector (e.g., public or private), level of study, and more. The dataset was provided by the New York State Higher Education Services Corporation, and it was downloaded from a New York state government data catalog. The dataset has about 288,000 rows, but we intend on focusing only on the years 2014-2019, which will reduce its size. 
 
-The original dataset can be accessed through the following link: https://data.ny.gov/Education/Tuition-Assistance-Program-TAP-Recipients-Dollars-/2t78-bs45
+The origi   nal dataset can be accessed through the following link: https://data.ny.gov/Education/Tuition-Assistance-Program-TAP-Recipients-Dollars-/2t78-bs45
 
 ### Load and clean dataset
 ```{r, message = FALSE}
