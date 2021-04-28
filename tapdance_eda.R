@@ -31,6 +31,33 @@ skim(tap_data) %>% view()
 # skim outcome variable
 skim(tap_data$sector_type)
 
+# view observation distributions
+ggplot(tap_data, aes(level)) +
+  geom_bar()
 
+ggplot(tap_data, aes(tap_level_of_study)) +
+  geom_bar()
 
+ggplot(tap_data, aes(sector_type)) +
+  geom_bar()
 
+ggplot(tap_data, aes(tap_sector_group)) +
+  geom_bar()
+
+ggplot(tap_data, aes(recipient_age_group)) +
+  geom_bar()
+
+ggplot(tap_data, aes(tap_financial_status)) +
+  geom_bar()
+
+ggplot(tap_data, aes(tap_award_schedule)) +
+  geom_bar()
+
+ggplot(tap_data, aes(tap_degree_or_non_degree)) +
+  geom_bar()
+
+# by year
+tap_data %>% 
+  group_by(academic_year) %>% 
+ggplot(aes(academic_year, tap_recipient_headcount)) +
+  geom_col()
