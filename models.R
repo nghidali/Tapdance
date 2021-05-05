@@ -26,7 +26,7 @@ dim(tap_test)
 dim(tap_train)
 
 # creating folds
-tap_folds <- vfold_cv(tap_train, v = 5, repeats = 3)
+tap_folds <- vfold_cv(tap_train, v = 5, repeats = 3, strata = sector_type)
 
 # creating the recipe
 tap_recipe <- recipe(sector_type ~ ., data = tap_dat) %>% 
