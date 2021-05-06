@@ -32,3 +32,6 @@ tap_folds <- vfold_cv(tap_train, v = 5, repeats = 3, strata = sector_type)
 tap_recipe <- recipe(sector_type ~ ., data = tap_dat) %>% 
   step_dummy(all_nominal(), -all_outcomes()) %>% 
   step_normalize(all_predictors())
+
+# saving
+save(tap_recipe, tap_folds, file = "tap_model_inputs.rda")
