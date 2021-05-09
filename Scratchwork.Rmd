@@ -19,3 +19,14 @@ MARS - D
 Boosted Tree - N
 
 
+### TAP Schedule Letter
+
+TAP schedule letter is very imbalanced. There are many Es in comparison to a relatively low count for other classes.
+
+```{r}
+ggplot(tap_data, aes(tap_schedule_letter)) +
+  geom_bar() +
+  theme_bw()
+```
+
+
