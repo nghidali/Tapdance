@@ -1,0 +1,324 @@
+---
+title: "Long_Form"
+author: "Natalie Ghidali"
+date: "5/30/2021"
+output: 
+  html_document:
+    code_folding: hide
+    toc: true
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+To begin we started with a simple boosted tree model. We used all variables in our recipe and tuned mtry, min_n, and learn_rate. In our recipe, we made sure to add a step_other to deal with uncommon factor levels, because in tap_schedule_letter, levels F and G have only 2 observations each. We used a step_dummy to take care of our categorical variables and added a normalization step at the end to handle skews in several of our predictors. We stratified our data on the outcome sector_type, used an 80/20 split, and used a 5-fold cross validation on the training data with three repeats.
+
+```{r message=FALSE, warning=FALSE, include=FALSE}
+# loading packages
+library(tidyverse)
+library(tidymodels)
+library(janitor)
+library(DT)
+library(xgboost)
+
+# set seed
+set.seed(3948)
+
+# loading data
+tap_dat <- read.csv("data/tap_dat.csv")
+
+# cleaning data
+tap_dat <- read_csv("data/tap_dat.csv") %>% 
+  clean_names() %>%
+  filter(academic_year >= 2014) %>%
+  filter(tap_level_of_study != "STAP") %>% # only one observation of STAP so remove it
+  mutate(
+    level = factor(level),
+    tap_level_of_study = factor(tap_level_of_study),
+    sector_type = factor(sector_type),
+    tap_sector_group = factor(tap_sector_group),
+    recipient_age_group = ordered(recipient_age_group, 
+                                  levels = c("under age 22",  "age 22 - 25", "age 26 - 35",  "age 36 - 50",  "over age 50"),
+                                  labels = c("under_age_22",  "age_22_25", "age_26_35",  "age_36_50",  "over_age_50")),
+    tap_financial_status = factor(tap_financial_status),
+    tap_award_schedule = factor(tap_award_schedule),
+    tap_degree_or_non_degree = factor(tap_degree_or_non_degree),
+    tap_schedule_letter = factor(tap_schedule_letter),
+    income = as.numeric(sub(",","",str_extract(income_by_1_000_range, "\\d+,*\\d*")))
+  ) %>%
+  select(-income_by_1_000_range, -income_by_5_000_range, -income_by_10_000_range) %>%
+  select(-tap_sector_group)  # sector group is too similar to sector type
+
+# splitting data
+tap_split <- initial_split(tap_dat, prop = .80, strata = sector_type)
+tap_train <- training(tap_split)
+tap_test <- testing(tap_split)
+
+# creating folds
+tap_folds <- vfold_cv(tap_train, v = 5, repeats = 3, strata = sector_type)
+
+# tap_schedule_letter has some very uncommon factor levels, we will need to bin them in our recipe
+count(tap_dat,tap_schedule_letter)
+
+# creating the recipe
+tap_recipe <- recipe(sector_type ~ ., data = tap_train) %>% 
+  # remove level since it is duplicating information already contained in TAP level of study
+  step_rm(level) %>%
+  # Collapse uncommon factor levels, experimentally, a higher threshold works better, but this is extra necessary for tap_schedule_letter, where levels F and G have only 2 observations each
+  step_other(all_nominal_predictors(), threshold = 0.05) %>%
+  step_dummy(all_nominal_predictors(), one_hot = TRUE) %>% 
+  step_normalize(all_numeric_predictors()) 
+```
+
+We set the model to use impurity for the importance metric and ran it. This model achieved a perfect 100% accuracy, so we knew we had done something wrong. After running a variable importance plot on our model results, we realized that level was by far the most prominent component in the model. Investigating our codebook, we discovered that tap_sector_group was perfectly predicting sector type. Tap sector group contained information on the type of the institution which is the same as our outcome variable. We removed tap_sector_group and ran the boosted tree model again, this time the accuracy was only 0.624, much more realistic. We then set about improving the model. 
+
+```{r, eval = FALSE}
+# Boosted Tree Model
+bt_model <- boost_tree(
+  mode = "classification",
+  mtry = tune(),
+  min_n = tune(),
+  learn_rate = tune()
+) %>%
+  set_engine("xgboost", importance = "impurity")
+
+bt_workflow <- workflow() %>%
+  add_recipe(tap_recipe) %>%
+  add_model(bt_model)
+
+bt_params <- parameters(bt_workflow) %>%
+  update(mtry = mtry(range = c(1, 15)))
+
+bt_grid <- grid_regular(bt_params, levels = 9)
+
+control <- control_resamples(verbose = TRUE)
+
+bt_tuned <- bt_workflow %>%
+  tune_grid(tap_folds, bt_grid, control)
+```
+
+```{r eval=FALSE}
+# Pick optimal tuning params
+bt_results <- bt_workflow %>%
+  finalize_workflow(select_best(bt_tuned, metric = "accuracy")) %>%
+  fit(tap_train)
+
+# Predict test set
+bt_predictions <- predict(bt_results, new_data = tap_test) %>%
+  bind_cols(tap_test %>% select(sector_type)) %>%
+  rename(predicted = .pred_class) %>%
+  mutate(predicted = factor(predicted),
+         sector_type = factor(sector_type))
+
+accuracy(bt_predictions,sector_type, predicted)
+# 0.626
+```
+
+To determine interactions, we created a correlation matrix on our prepped and baked recipe
+```{r}
+correlations_data <- tap_recipe %>% 
+  prep() %>% 
+  bake(new_data = NULL) %>%
+  select(-sector_type)
+datatable(cor(correlations_data))
+```
+
+Based on the correlation matrix, we decided to remove tap_recipient_ft_es and tap_recipient_dollars because they were both over 95% correlated with tap_recipient_headcount. We also added interactions between tap_recipient_headcount and tap_recipient_age_group, tap_recipient_headcount and tap_financial_status, income and tap_financial_statues, and income and tap_award_schedule.
+```{r}
+tap_recipe <- recipe(sector_type ~ ., data = tap_train) %>%
+  # remove level since it is duplicating information already contained in TAP level of study
+  step_rm(level, tap_recipient_ft_es) %>%
+  # Collapse uncommon factor levels, experimentally, a higher threshold works better, but this is extra necessary for tap_schedule_letter, where levels F and G have only 2 observations each
+  step_other(all_nominal_predictors(), threshold = 0.05) %>%
+  step_dummy(all_nominal_predictors(), one_hot = TRUE) %>%
+  step_interact(
+    terms = ~ income:starts_with("tap_financial_status") + tap_recipient_headcount:starts_with("tap_financial_status") + tap_recipient_headcount:starts_with("recipient_age_group") + income:starts_with("tap_award_schedule")
+  ) %>%
+  step_normalize(all_numeric_predictors()) 
+```
+
+We reran the boosted tree model with the new recipe, and evaluated the accuracy.
+```{r eval=FALSE}
+# Boosted Tree Model
+bt_model <- boost_tree(
+  mode = "classification",
+  mtry = tune(),
+  min_n = tune(),
+  learn_rate = tune()
+) %>%
+  set_engine("xgboost", importance = "impurity")
+
+bt_workflow <- workflow() %>%
+  add_recipe(tap_recipe) %>%
+  add_model(bt_model)
+
+bt_params <- parameters(bt_workflow) %>%
+  update(mtry = mtry(range = c(1, 15)))
+
+bt_grid <- grid_regular(bt_params, levels = 9)
+
+control <- control_resamples(verbose = TRUE)
+
+bt_tuned <- bt_workflow %>%
+  tune_grid(tap_folds, bt_grid, control)
+```
+
+```{r eval=FALSE}
+# Pick optimal tuning params
+bt_results <- bt_workflow %>%
+  finalize_workflow(select_best(bt_tuned, metric = "accuracy")) %>%
+  fit(tap_train)
+
+# Predict test set
+bt_predictions <- predict(bt_results, new_data = tap_test) %>%
+  bind_cols(tap_test %>% select(sector_type)) %>%
+  rename(predicted = .pred_class) %>%
+  mutate(predicted = factor(predicted),
+         sector_type = factor(sector_type))
+
+accuracy(bt_predictions,sector_type, predicted)
+# 0.621
+```
+
+Unfortunately, the accuracy dropped from 0.626 in the model without interactions, to 0.621 in the model with interactions. To see which interactions and variables to keep, we conducted a variable importance analysis.
+
+```{r}
+bt_results <- readRDS("bt_results.rds")
+datatable(arrange(xgb.importance(model=pull_workflow_fit(bt_results)$fit), desc(Gain)))
+```
+The variable importance chart highlights that the most usable interaction was income against financial status, we can keep this interaction and discard the rest.
+
+Rerunning the boosted tree model with just the interaction between income and financial status produced an accuracy of 0.626. We decided to move forward with this recipe and try to tune a few new models.
+
+We tried a k nearest neighbors model where we tuned the number of neighbors, and achieved an accuracy of 0.509.
+
+```{r eval=FALSE}
+# Define model ----
+knn_model <- nearest_neighbor(mode = "classification",
+                             neighbors = tune()) %>% 
+  set_engine("kknn")
+
+knn_workflow <- workflow() %>%
+  add_recipe(tap_recipe) %>%
+  add_model(knn_model)
+
+# set-up tuning grid ----
+knn_params <- parameters(knn_workflow) %>% 
+  update(
+    neighbors = neighbors(range = c(1, 15))
+  )
+
+knn_grid <- grid_regular(knn_params, levels = 9)
+
+control <- control_resamples(verbose = TRUE)
+
+knn_tuned <- knn_workflow %>%
+  tune_grid(tap_folds, knn_grid, control)
+```
+
+
+```{r eval=FALSE}
+# Pick optimal tuning params
+show_best(knn_tuned, metric = "accuracy")
+knn_results <- knn_workflow %>%
+  finalize_workflow(select_best(knn_tuned, metric = "accuracy")) %>%
+  fit(tap_train)
+
+# Predict test set
+knn_predictions <- predict(knn_results, new_data = tap_test) %>%
+  bind_cols(tap_test %>% select(sector_type)) %>%
+  rename(predicted = .pred_class) %>%
+  mutate(predicted = factor(predicted),
+         sector_type = factor(sector_type))
+
+accuracy(knn_predictions,sector_type, predicted)
+# 0.509
+```
+
+We tried a support vector machine using a radial basis function and achieved an accuracy of 0.636. 
+
+```{r eval=FALSE}
+# Define model ----
+svm_rbf_model <- svm_rbf(mode = "classification",
+                         cost = tune(),
+                         rbf_sigma = tune()) %>%
+  set_engine("kernlab")
+
+svm_rbf_workflow <- workflow() %>%
+  add_recipe(tap_recipe) %>%
+  add_model(svm_rbf_model)
+
+svm_rbf_grid <-
+  grid_regular(parameters(svm_rbf_workflow), levels = 3)
+
+control <- control_resamples(verbose = TRUE)
+
+svm_rbf_tuned <- svm_rbf_workflow %>%
+  tune_grid(tap_folds, svm_rbf_grid, control)
+```
+
+
+```{r eval=FALSE}
+# Pick optimal tuning params
+show_best(svm_rbf_tuned, metric = "accuracy")
+svm_rbf_results <- svm_rbf_workflow %>%
+  finalize_workflow(select_best(svm_rbf_tuned, metric = "accuracy")) %>%
+  fit(tap_train)
+
+# Predict test set
+svm_rbf_predictions <- predict(svm_rbf_results, new_data = tap_test) %>%
+  bind_cols(tap_test %>% select(sector_type)) %>%
+  rename(predicted = .pred_class) %>%
+  mutate(predicted = factor(predicted),
+         sector_type = factor(sector_type))
+
+accuracy(svm_rbf_predictions,sector_type, predicted)
+# accuracy = 0.636
+```
+
+We also tried a random forest model where we tuned mtry and min_n, here we found the greatest accuracy of 0.674. 
+```{r, eval = FALSE}
+# Define model ----
+rf_model <- rand_forest(
+  mode = "classification",
+  mtry = tune(),
+  min_n = tune()
+) %>%
+  set_engine("ranger", importance = "impurity")
+
+rf_workflow <- workflow() %>%
+  add_recipe(tap_recipe) %>%
+  add_model(rf_model)
+
+rf_params <- parameters(rf_workflow) %>%
+  update(mtry = mtry(range = c(1, 15)))
+
+rf_grid <- grid_regular(rf_params, levels = 9)
+
+control <- control_resamples(verbose = TRUE)
+
+rf_tuned <- rf_workflow %>%
+  tune_grid(tap_folds, rf_grid, control)
+```
+
+
+```{r, eval = FALSE}
+# Pick optimal tuning params
+show_best(rf_tuned, metric = "accuracy")
+rf_results <- rf_workflow %>%
+  finalize_workflow(select_best(rf_tuned, metric = "accuracy")) %>%
+  fit(tap_train)
+
+# Predict test set
+rf_predictions <- predict(rf_results, new_data = tap_test) %>%
+  bind_cols(tap_test %>% select(sector_type)) %>%
+  rename(predicted = .pred_class) %>%
+  mutate(predicted = factor(predicted),
+         sector_type = factor(sector_type))
+
+accuracy(rf_predictions,sector_type, predicted)
+# 0.674
+```
+
+

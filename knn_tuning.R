@@ -1,46 +1,48 @@
-# KNN tuning ----
-
-# Load package(s) ----
 library(tidyverse)
 library(tidymodels)
-library(tictoc)
+library(xgboost)
+set.seed(42)
 
-# load required objects ----
-set.seed(3948)
+load("tap_model_inputs.rda")
 
 # Define model ----
-nn_model <- nearest_neighbor(mode = "classification",
+knn_model <- nearest_neighbor(mode = "classification",
                              neighbors = tune()) %>% 
   set_engine("kknn")
 
+knn_workflow <- workflow() %>%
+  add_recipe(tap_recipe) %>%
+  add_model(knn_model)
+
 # set-up tuning grid ----
-nn_params <- parameters(nn_model) %>% 
+knn_params <- parameters(knn_workflow) %>% 
   update(
     neighbors = neighbors(range = c(1, 15))
   )
 
-# define tuning grid
-nn_grid <- grid_regular(nn_params, levels = 5)
+knn_grid <- grid_regular(knn_params, levels = 9)
 
-nn_grid
+control <- control_resamples(verbose = TRUE)
 
-# workflow ----
-nn_workflow <- workflow() %>% 
-  add_model(nn_model) %>% 
-  add_recipe(tap_recipe)
+knn_tuned <- knn_workflow %>%
+  tune_grid(tap_folds, knn_grid, control)
 
-# Tuning/fitting ----
-tic("KNN")
+saveRDS(knn_tuned, "knn_tuned.rds")
 
-nn_tuned <- nn_workflow %>% 
-  tune_grid(tap_folds, grid = nn_grid)
+knn_tuned <- readRDS("knn_tuned.rds")
 
-toc(log = TRUE)
+# Pick optimal tuning params
+show_best(knn_tuned, metric = "accuracy")
+knn_results <- knn_workflow %>%
+  finalize_workflow(select_best(knn_tuned, metric = "accuracy")) %>%
+  fit(tap_train)
 
-write_rds(nn_tuned, "nn_results.rds")
+# Predict test set
+knn_predictions <- predict(knn_results, new_data = tap_test) %>%
+  bind_cols(tap_test %>% select(sector_type)) %>%
+  rename(predicted = .pred_class) %>%
+  mutate(predicted = factor(predicted),
+         sector_type = factor(sector_type))
 
-# save runtime info
-nearest_neighbors_run_time <- tic.log(format = TRUE)
-
-# Write out results & workflow
-
+accuracy(knn_predictions,sector_type, predicted)
+# 0.509

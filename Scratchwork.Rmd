@@ -18,6 +18,7 @@ Random Forest - R
 MARS - D
 Boosted Tree - N
 
+https://data.ny.gov/Education/Tuition-Assistance-Program-TAP-Recipients-Dollars-/2t78-bs45
 
 ### TAP Schedule Letter
 
@@ -29,4 +30,12 @@ ggplot(tap_data, aes(tap_schedule_letter)) +
   theme_bw()
 ```
 
+```{r}
+correlations_data <- tap_recipe %>% 
+  prep() %>% 
+  bake(new_data = NULL) %>%
+  select(-sector_type)
+correlations_data
+View(cor(correlations_data))
+```
 
