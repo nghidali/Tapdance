@@ -4,7 +4,7 @@
 .Ruserdata
 tap_model_inputs.rda
 svm_rbf_tuned.rds
-bt_results.rds
+
 bt_tuned.rds
 knn_tuned.rds
 rf_tuned.rds
