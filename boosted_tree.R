@@ -39,6 +39,8 @@ bt_results <- bt_workflow %>%
   finalize_workflow(select_best(bt_tuned, metric = "accuracy")) %>%
   fit(tap_train)
 
+saveRDS(bt_results, "bt_results.rds")
+
 # Predict test set
 bt_predictions <- predict(bt_results, new_data = tap_test) %>%
   bind_cols(tap_test %>% select(sector_type)) %>%

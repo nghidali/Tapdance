@@ -37,6 +37,8 @@ knn_results <- knn_workflow %>%
   finalize_workflow(select_best(knn_tuned, metric = "accuracy")) %>%
   fit(tap_train)
 
+saveRDS(knn_results, "knn_results.rds")
+
 # Predict test set
 knn_predictions <- predict(knn_results, new_data = tap_test) %>%
   bind_cols(tap_test %>% select(sector_type)) %>%
