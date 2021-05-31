@@ -4,6 +4,7 @@ author: "Natalie Ghidali"
 date: "5/30/2021"
 output: 
   html_document:
+    number_sections: true
     code_folding: hide
     toc: true
 ---
@@ -12,16 +13,56 @@ output:
 knitr::opts_chunk$set(echo = TRUE)
 ```
 
-To begin we started with a simple boosted tree model. We used all variables in our recipe and tuned mtry, min_n, and learn_rate. In our recipe, we made sure to add a step_other to deal with uncommon factor levels, because in tap_schedule_letter, levels F and G have only 2 observations each. We used a step_dummy to take care of our categorical variables and added a normalization step at the end to handle skews in several of our predictors. We stratified our data on the outcome sector_type, used an 80/20 split, and used a 5-fold cross validation on the training data with three repeats.
+# Introduction
 
-```{r message=FALSE, warning=FALSE, include=FALSE}
+We will be working with data on the amount of aid given through the Tuition Assistance Program (TAP) for New York universities from the years 2000-2019. The TAP is New York's largest financial aid grant program, assisting eligible New York residents pursue higher education. The dataset includes the dollar amounts of aid given to each recipient, as well as information regarding each recipients' family income, age group, university sector (e.g., public or private), level of study, and more. The dataset was provided by the New York State Higher Education Services Corporation, and it was downloaded from a New York state government data catalog. The dataset has about 288,000 rows, but we intend on focusing only on the years 2014-2019, which will reduce its size. 
+
+The original dataset can be accessed through the following link: https://data.ny.gov/Education/Tuition-Assistance-Program-TAP-Recipients-Dollars-/2t78-bs45
+
+The objective of this analysis is to predict the sector type an applicant is applying for using the available variables. Therefore, the outcome variable is called `sector_type` and has two distinct classes: Public or Private.
+
+# Data Processing
+
+```{r, message = FALSE}
 # loading packages
 library(tidyverse)
 library(tidymodels)
+library(skimr)
 library(janitor)
 library(DT)
 library(xgboost)
+```
 
+The original dataset was processed in order to make the analysis possible. The variables `level`, `tap_level_of_study`, `sector_type`, `tap_sector_group`, `tap_financial_status`, `tap_award_schedule`, `tap_degree_or_non_degree`, `tap_schedule_letter` and  `recipient_age_group` were transformed into factors. The variable `income` was transformed from nominal income ranges to a numerical approximation. Finally, the rows were filtered so that only data as recent as 2014 was included.
+
+```{r, message = FALSE}
+tap_data <- read_csv("data/tap_dat.csv") %>% 
+  clean_names() %>%
+  mutate(
+    level = factor(level),
+    tap_level_of_study = factor(tap_level_of_study),
+    sector_type = factor(sector_type),
+    tap_sector_group = factor(tap_sector_group),
+    recipient_age_group = ordered(recipient_age_group, 
+                                  levels = c("under age 22",  "age 22 - 25", "age 26 - 35",  "age 36 - 50",  "over age 50")),
+    tap_financial_status = factor(tap_financial_status),
+    tap_award_schedule = factor(tap_award_schedule),
+    tap_degree_or_non_degree = factor(tap_degree_or_non_degree),
+    tap_schedule_letter = factor(tap_schedule_letter),
+    income = as.numeric(sub(",","",str_extract(income_by_1_000_range, "\\d+,*\\d*")))
+  ) %>%
+  select(-income_by_1_000_range, -income_by_5_000_range, -income_by_10_000_range) %>% 
+  filter(academic_year >= 2014)
+```
+
+# Exploratory Analysis
+# Model fitting
+# Testing
+# Conclusion
+
+To begin we started with a simple boosted tree model. We used all variables in our recipe and tuned mtry, min_n, and learn_rate. In our recipe, we made sure to add a step_other to deal with uncommon factor levels, because in tap_schedule_letter, levels F and G have only 2 observations each. We used a step_dummy to take care of our categorical variables and added a normalization step at the end to handle skews in several of our predictors. We stratified our data on the outcome sector_type, used an 80/20 split, and used a 5-fold cross validation on the training data with three repeats.
+
+```{r message=FALSE, warning=FALSE, include=FALSE}
 # set seed
 set.seed(3948)
 
