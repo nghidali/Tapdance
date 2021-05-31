@@ -32,6 +32,8 @@ svm_rbf_results <- svm_rbf_workflow %>%
   finalize_workflow(select_best(svm_rbf_tuned, metric = "accuracy")) %>%
   fit(tap_train)
 
+saveRDS(svm_rbf_results, "svm_rbf_results.rds")
+
 # Predict test set
 svm_rbf_predictions <- predict(svm_rbf_results, new_data = tap_test) %>%
   bind_cols(tap_test %>% select(sector_type)) %>%

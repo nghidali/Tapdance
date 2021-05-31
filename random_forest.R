@@ -38,6 +38,8 @@ rf_results <- rf_workflow %>%
   finalize_workflow(select_best(rf_tuned, metric = "accuracy")) %>%
   fit(tap_train)
 
+saveRDS(rf_results, "rf_results.rds")
+
 # Predict test set
 rf_predictions <- predict(rf_results, new_data = tap_test) %>%
   bind_cols(tap_test %>% select(sector_type)) %>%
