@@ -56,6 +56,212 @@ tap_data <- read_csv("data/tap_dat.csv") %>%
 ```
 
 # Exploratory Analysis
+
+## Skim
+
+The resulting dataset contains 56,846 observations and 14 features. Of the 14 variables, 9 are factors and 5 are numeric. The variable `tap_recipient_ft_es`, which refers to the number of TAP recipients. There are no instances of missingness in the dataset.
+
+```{r}
+# skim full dataset
+skim(tap_data)
+```
+
+## Outcome Variable
+
+It seems that there is a moderate class imbalance with the outcome variable, with most cases belonging to the `Public` class. Stratified sampling and resampling will be used going forward to minimize the issues of this imbalance. 
+
+```{r}
+tap_data %>% ggplot(aes(sector_type, fill = sector_type)) +
+  geom_bar() +
+  scale_fill_discrete(
+    guide = FALSE
+  ) +
+  labs(
+    title = "Institution Type: Private vs. Public"
+  ) +
+  theme_bw()
+```
+
+
+```{r}
+skim(tap_data$sector_type)
+```
+
+## Thorough univariate investigation of response and predictor variables
+
+### Academic Year
+
+Academic year is right skewed. There are no significant outliers. The year 2014 is the most represented and every subsequent year has less data.
+```{r}
+ggplot(tap_data, aes(academic_year)) +
+  geom_histogram(bins = 20) +
+  theme_bw()
+```
+
+### Level
+
+It appears that the variable level is a constant. There is only one class represented. For this reason, this variable will not improve any of the models and will be excluded from the analysis.
+
+```{r}
+ggplot(tap_data, aes(level)) +
+  geom_bar() +
+  theme_bw()
+```
+
+### TAP Level of Study
+
+There is a severe class imbalance with an equal amount of students in 2yr and 4yr undergraduate programs, very few in 5yr programs, and an extremely rare amount in remedial courses (STAP = Supplemental Tuition Assistance Program).
+
+```{r}
+ggplot(tap_data, aes(tap_level_of_study)) +
+  geom_bar() +
+  theme_bw()
+```
+
+### TAP Sector Group
+
+Tap sector group is imbalanced. Most students belong in the 3-SUNY SO, which are 3 year SUNY State Operated Institutions. The second most represented sector is 5-Independent, which are Independent Colleges.
+
+```{r}
+ggplot(tap_data, aes(tap_sector_group)) +
+  geom_bar() +
+  coord_flip() +
+  theme_bw()
+```
+
+### Recipient Age Group
+
+Recipient age group has a fairly normal distribution with a slight right skew. The median age range is 22 - 25 years.
+
+```{r}
+ggplot(tap_data, aes(recipient_age_group)) +
+  geom_bar() +
+  theme_bw()
+```
+
+### TAP Financial Status
+
+TAP financial status is imbalanced, with more financially independent cases than financially dependent.
+
+```{r}
+ggplot(tap_data, aes(tap_financial_status)) +
+  geom_bar() +
+  theme_bw()
+```
+
+### TAP Award Schedule
+
+TAP award schedule is imbalanced, there are far more dependently scheduled then independently scheduled or married with no dependents.
+
+```{r}
+ggplot(tap_data, aes(tap_award_schedule)) +
+  geom_bar() +
+  theme_bw()
+```
+
+### TAP Degree or NonDegree
+
+Tap degree or non degree is extremely imbalanced, with far more counts of degree then non degree. This means that almost all programs in this dataset are degree granting.
+
+```{r}
+ggplot(tap_data, aes(tap_degree_or_non_degree)) +
+  geom_bar() +
+  theme_bw()
+```
+
+### Income
+
+There are more students at the lower end of the income spectrum vs at the higher end. Incomes do not exceed $80,000, which is the limit to qualify for the program
+
+```{r}
+ggplot(tap_data, aes(income)) +
+  geom_histogram(bins = 20) +
+  theme_bw()
+```
+
+### TAP Recipient Headcount
+
+The TAP recipient headcount is heavily right skewed with a very long tail. This measure is equal to the number of recipients as measured by students receiving at least one term award during the academic year.
+
+```{r, warning = FALSE}
+ggplot(tap_data, aes(tap_recipient_headcount)) +
+  geom_histogram(bins = 50) +
+  xlim(c(0,50)) +
+  theme_bw()
+```
+
+### TAP Recipient FTEs
+
+The TAP recipient FTEs is heavily right skewed with a very long tail. This measure equals to the number of recipients as measured by academic year Full Time Equivalents. Therefore, it makes sense that the distribution would resemble that of the TAP Recipient Headcount
+
+```{r, warning = FALSE, message = FALSE}
+ggplot(tap_data, aes(tap_recipient_ft_es)) +
+  geom_histogram() +
+  xlim(0,50)  +
+  theme_bw()
+```
+
+### TAP Recipient Dollars
+
+The TAP recipient dollars is heavily right skewed with a very long tail. Most recipients received less than $25,000.
+
+```{r, warning = FALSE, message = FALSE}
+ggplot(tap_data, aes(tap_recipient_dollars)) +
+  geom_histogram() +
+  xlim(0,200000)  +
+  theme_bw()
+```
+
+## Relationships between response variables and predictor variables
+
+We first wanted to see the distribution of the total amount of aid given to students attending private or public schools. 
+
+```{r}
+# Relationship between sector type and amount of aid awarded
+ggplot(tap_data, aes(x = sector_type, y = tap_recipient_dollars)) +
+  geom_bar(stat = "identity") +
+  labs(x = "Sector Type",
+       y = "Total Aid Given (USD)",
+       title = "Total TAP Aid Given by Sector Type") +
+  theme_bw()
+```
+
+There was more total aid allotted to students attending public schools than private schools
+
+```{r}
+# Income Level vs Sector Type
+ggplot(tap_data, aes(x = sector_type, y = income)) +
+  geom_boxplot() +
+  labs(x = "Sector Type",
+       y = "Income in USD",
+       title = "Average Income Level Among Students by Sector Type") +
+  theme_bw()
+```
+
+Students attending public schools have slightly higher average income which is unexpected given that public students receive more aid overall. This raises question about whether more public school students are financially dependent. However, the average income is only slightly higher among public school students than private school students, so we don't know to what extent this difference is important. 
+
+```{r}
+# Financial Status and income
+
+ggplot(tap_data, aes(x = tap_financial_status, y = income)) +
+  geom_boxplot() +
+  labs(x = "Financial Status", y = "Income (USD)", title = "Average Income of TAP Recipients by Financial Status") +
+  theme_minimal()
+```
+
+Dependents have an average higher income than students who are financially independent
+
+```{r}
+# Income vs TAP Money Given
+ggplot(tap_data, aes(x = income, y = tap_recipient_dollars)) +
+  geom_line() +
+  labs(x = "Income (USD)", y = "Amount of TAP Aid Given (USD)", title = "Amount of Aid Given By Income") +
+  theme_minimal()
+```
+
+The amount of aid given to students decreases as their level of income increases. 
+
+
 # Model fitting
 # Testing
 # Conclusion
