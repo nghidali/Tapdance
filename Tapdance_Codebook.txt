@@ -1,0 +1,56 @@
+﻿Dataset: 
+
+
+The dataset can be accessed at the following link: https://data.ny.gov/Education/Tuition-Assistance-Program-TAP-Recipients-Dollars-/2t78-bs45
+
+
+tap_data: The Tuition Assistance Program (TAP) is New York’s biggest student financial aid grant program, and it gives aid to eligible New York residents attending in-state schools. The TAP dataset gives information about the recipients, their demographic information, and the dollar amount received
+
+
+Variables:
+
+
+Academic Year: The year (July 1 - June 30) the grant was given for
+
+
+Level: Type of degree program (U = Undergraduate, G = Graduate)
+
+
+TAP Level of Study: The specific level of the degree program (2 yr Undergrad = Undergraduate 2 year Program of Study, 4 yr Undergrad = Undergraduate 4 year Program of Study, 5 yr Undergrad = Undergraduate 5 year Program of Study, Approved Undergraduate 5 Year Program of Study STAP = Supplemental Tuition Assistance Program (authorized additional aid for remedial courses), Grad = Graduate Level Program of Study)
+
+
+Sector Type: Type of institution is either Public or Private
+
+
+TAP Sector Group: Sector Group of Institution (1-CUNY SP = CUNY Senior Colleges, 2-CUNY CC = CUNY Community Colleges, 3-SUNY SO = SUNY State Operated, 4-SUNY CC = SUNY Community Colleges, 5-INDEPENDENT = Independent Colleges, 6-BUS. DEGREE = Business Degree Granting Institutions, 7-BUS. NON-DEG = Non-Degree Business Schools, 8-OTHER = All Other Institutions, 9-CHAPTER XXII = Chapter XXII TAP Schools)
+
+
+Recipient Age Group: Age of student as of July 1 start of academic year
+
+
+TAP Financial Status: Financial status of grant recipient, either financial_dependent or financial_independent
+
+
+TAP Award Schedule: Dependent Schedule, Independent Schedule, or Married No Dependents Schedule
+
+
+TAP Degree or NonDegree: Degree = Program of study is classified as degree granting, Non Degree = Program of study is classified as non degree
+TAP Schedule Letter: Refer to TAP award schedule documentation. The link is provided in the Additional Resources section after selecting the About tab
+
+
+Income by $1,000 Range: Level of income per $1,000; when performing data analysis one of the three income ranges can be selected and this one has the lowest level of granularity that is available in this dataset
+
+
+Income by $5,000 Range: Level of income per $5,000; possible income range with medium level of granularity
+
+
+Income by $10,000 Range: Level of income per $10,000; possible income range with highest level of granularity
+
+
+TAP Recipient Headcount: Number of recipients as measured by students receiving at least one term award during the academic year
+
+
+TAP Recipient FTEs: Number of recipients as measured by academic Full-Time Equivalents: FTE is a unit that indicates the enrollment of a student in credit-bearing courses in a way that makes is comparable across contexts; FTE of 1.0 means the student is enrolled full time and FTE of 0.5 means the student is enrolled half time
+
+
+TAP Recipient Dollars: Total TAP award dollars given to recipients attending an academic institution
