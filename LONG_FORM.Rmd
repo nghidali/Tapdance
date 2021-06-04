@@ -1,7 +1,7 @@
 ---
-title: "Long_Form"
+title: "Long Form Narration"
 author: "Natalie Ghidali"
-date: "5/30/2021"
+date: "6/4/2021"
 output: 
   html_document:
     number_sections: true
@@ -15,9 +15,9 @@ knitr::opts_chunk$set(echo = TRUE)
 
 # Introduction
 
-We will be working with data on the amount of aid given through the Tuition Assistance Program (TAP) for New York universities from the years 2000-2019. The TAP is New York's largest financial aid grant program, assisting eligible New York residents pursue higher education. The dataset includes the dollar amounts of aid given to each recipient, as well as information regarding each recipients' family income, age group, university sector (e.g., public or private), level of study, and more. The dataset was provided by the New York State Higher Education Services Corporation, and it was downloaded from a New York state government data catalog. The dataset has about 288,000 rows, but we intend on focusing only on the years 2014-2019, which will reduce its size. 
+We will be working with data on the amount of aid given through the Tuition Assistance Program (TAP) for New York universities from the years 2000-2019. The TAP is New York's largest financial aid grant program, assisting eligible New York residents pursue higher education. The dataset includes the dollar amounts of aid given to each recipient, as well as information regarding each recipients' family income, age group, university sector (e.g., public or private), level of study, and more. The dataset was provided by the New York State Higher Education Services Corporation, and it was downloaded from a New York state government data catalog. The dataset has about 288,000 rows, but we intend on focusing only on the years 2014-2019, which will reduce its size.
 
-The original dataset can be accessed through the following link: https://data.ny.gov/Education/Tuition-Assistance-Program-TAP-Recipients-Dollars-/2t78-bs45
+The original dataset can be accessed through the following link: <https://data.ny.gov/Education/Tuition-Assistance-Program-TAP-Recipients-Dollars-/2t78-bs45>
 
 The objective of this analysis is to predict the sector type an applicant is applying for using the available variables. Therefore, the outcome variable is called `sector_type` and has two distinct classes: Public or Private.
 
@@ -33,7 +33,7 @@ library(DT)
 library(xgboost)
 ```
 
-The original dataset was processed in order to make the analysis possible. The variables `level`, `tap_level_of_study`, `sector_type`, `tap_sector_group`, `tap_financial_status`, `tap_award_schedule`, `tap_degree_or_non_degree`, `tap_schedule_letter` and  `recipient_age_group` were transformed into factors. The variable `income` was transformed from nominal income ranges to a numerical approximation. Finally, the rows were filtered so that only data as recent as 2014 was included.
+The original dataset was processed in order to make the analysis possible. The variables `level`, `tap_level_of_study`, `sector_type`, `tap_sector_group`, `tap_financial_status`, `tap_award_schedule`, `tap_degree_or_non_degree`, `tap_schedule_letter` and `recipient_age_group` were transformed into factors. The variable `income` was transformed from nominal income ranges to a numerical approximation. Finally, the rows were filtered so that only data as recent as 2014 was included.
 
 ```{r, message = FALSE}
 tap_data <- read_csv("data/tap_dat.csv") %>% 
@@ -68,7 +68,7 @@ skim(tap_data)
 
 ## Outcome Variable
 
-It seems that there is a moderate class imbalance with the outcome variable, with most cases belonging to the `Public` class. Stratified sampling and resampling will be used going forward to minimize the issues of this imbalance. 
+It seems that there is a moderate class imbalance with the outcome variable, with most cases belonging to the `Public` class. Stratified sampling and resampling will be used going forward to minimize the issues of this imbalance.
 
 ```{r}
 tap_data %>% ggplot(aes(sector_type, fill = sector_type)) +
@@ -82,7 +82,6 @@ tap_data %>% ggplot(aes(sector_type, fill = sector_type)) +
   theme_bw()
 ```
 
-
 ```{r}
 skim(tap_data$sector_type)
 ```
@@ -92,6 +91,7 @@ skim(tap_data$sector_type)
 ### Academic Year
 
 Academic year is right skewed. There are no significant outliers. The year 2014 is the most represented and every subsequent year has less data.
+
 ```{r}
 ggplot(tap_data, aes(academic_year)) +
   geom_histogram(bins = 20) +
@@ -171,7 +171,7 @@ ggplot(tap_data, aes(tap_degree_or_non_degree)) +
 
 ### Income
 
-There are more students at the lower end of the income spectrum vs at the higher end. Incomes do not exceed $80,000, which is the limit to qualify for the program
+There are more students at the lower end of the income spectrum vs at the higher end. Incomes do not exceed \$80,000, which is the limit to qualify for the program
 
 ```{r}
 ggplot(tap_data, aes(income)) +
@@ -203,7 +203,7 @@ ggplot(tap_data, aes(tap_recipient_ft_es)) +
 
 ### TAP Recipient Dollars
 
-The TAP recipient dollars is heavily right skewed with a very long tail. Most recipients received less than $25,000.
+The TAP recipient dollars is heavily right skewed with a very long tail. Most recipients received less than \$25,000.
 
 ```{r, warning = FALSE, message = FALSE}
 ggplot(tap_data, aes(tap_recipient_dollars)) +
@@ -214,7 +214,7 @@ ggplot(tap_data, aes(tap_recipient_dollars)) +
 
 ## Relationships between response variables and predictor variables
 
-We first wanted to see the distribution of the total amount of aid given to students attending private or public schools. 
+We first wanted to see the distribution of the total amount of aid given to students attending private or public schools.
 
 ```{r}
 # Relationship between sector type and amount of aid awarded
@@ -238,7 +238,7 @@ ggplot(tap_data, aes(x = sector_type, y = income)) +
   theme_bw()
 ```
 
-Students attending public schools have slightly higher average income which is unexpected given that public students receive more aid overall. This raises question about whether more public school students are financially dependent. However, the average income is only slightly higher among public school students than private school students, so we don't know to what extent this difference is important. 
+Students attending public schools have slightly higher average income which is unexpected given that public students receive more aid overall. This raises question about whether more public school students are financially dependent. However, the average income is only slightly higher among public school students than private school students, so we don't know to what extent this difference is important.
 
 ```{r}
 # Financial Status and income
@@ -259,12 +259,9 @@ ggplot(tap_data, aes(x = income, y = tap_recipient_dollars)) +
   theme_minimal()
 ```
 
-The amount of aid given to students decreases as their level of income increases. 
+The amount of aid given to students decreases as their level of income increases.
 
-
-# Model fitting
-# Testing
-# Conclusion
+# Model Fitting & Evaluation
 
 To begin we started with a simple boosted tree model. We used all variables in our recipe and tuned mtry, min_n, and learn_rate. In our recipe, we made sure to add a step_other to deal with uncommon factor levels, because in tap_schedule_letter, levels F and G have only 2 observations each. We used a step_dummy to take care of our categorical variables and added a normalization step at the end to handle skews in several of our predictors. We stratified our data on the outcome sector_type, used an 80/20 split, and used a 5-fold cross validation on the training data with three repeats.
 
@@ -318,7 +315,7 @@ tap_recipe <- recipe(sector_type ~ ., data = tap_train) %>%
   step_normalize(all_numeric_predictors()) 
 ```
 
-We set the model to use impurity for the importance metric and ran it. This model achieved a perfect 100% accuracy, so we knew we had done something wrong. After running a variable importance plot on our model results, we realized that level was by far the most prominent component in the model. Investigating our codebook, we discovered that tap_sector_group was perfectly predicting sector type. Tap sector group contained information on the type of the institution which is the same as our outcome variable. We removed tap_sector_group and ran the boosted tree model again, this time the accuracy was only 0.624, much more realistic. We then set about improving the model. 
+We set the model to use impurity for the importance metric and ran it. This model achieved a perfect 100% accuracy, so we knew we had done something wrong. After running a variable importance plot on our model results, we realized that level was by far the most prominent component in the model. Investigating our codebook, we discovered that tap_sector_group was perfectly predicting sector type. Tap sector group contained information on the type of the institution which is the same as our outcome variable. We removed tap_sector_group and ran the boosted tree model again, this time the accuracy was only 0.624, much more realistic. We then set about improving the model.
 
 ```{r, eval = FALSE}
 # Boosted Tree Model
@@ -363,6 +360,7 @@ accuracy(bt_predictions,sector_type, predicted)
 ```
 
 To determine interactions, we created a correlation matrix on our prepped and baked recipe
+
 ```{r}
 correlations_data <- tap_recipe %>% 
   prep() %>% 
@@ -372,6 +370,7 @@ datatable(cor(correlations_data))
 ```
 
 Based on the correlation matrix, we decided to remove tap_recipient_ft_es and tap_recipient_dollars because they were both over 95% correlated with tap_recipient_headcount. We also added interactions between tap_recipient_headcount and tap_recipient_age_group, tap_recipient_headcount and tap_financial_status, income and tap_financial_statues, and income and tap_award_schedule.
+
 ```{r}
 tap_recipe <- recipe(sector_type ~ ., data = tap_train) %>%
   # remove level since it is duplicating information already contained in TAP level of study
@@ -386,6 +385,7 @@ tap_recipe <- recipe(sector_type ~ ., data = tap_train) %>%
 ```
 
 We reran the boosted tree model with the new recipe, and evaluated the accuracy.
+
 ```{r eval=FALSE}
 # Boosted Tree Model
 bt_model <- boost_tree(
@@ -434,6 +434,7 @@ Unfortunately, the accuracy dropped from 0.626 in the model without interactions
 bt_results <- readRDS("bt_results.rds")
 datatable(arrange(xgb.importance(model=pull_workflow_fit(bt_results)$fit), desc(Gain)))
 ```
+
 The variable importance chart highlights that the most usable interaction was income against financial status, we can keep this interaction and discard the rest.
 
 Rerunning the boosted tree model with just the interaction between income and financial status produced an accuracy of 0.626. We decided to move forward with this recipe and try to tune a few new models.
@@ -464,7 +465,6 @@ knn_tuned <- knn_workflow %>%
   tune_grid(tap_folds, knn_grid, control)
 ```
 
-
 ```{r eval=FALSE}
 # Pick optimal tuning params
 show_best(knn_tuned, metric = "accuracy")
@@ -483,7 +483,7 @@ accuracy(knn_predictions,sector_type, predicted)
 # 0.509
 ```
 
-We tried a support vector machine using a radial basis function and achieved an accuracy of 0.636. 
+We tried a support vector machine using a radial basis function and achieved an accuracy of 0.636.
 
 ```{r eval=FALSE}
 # Define model ----
@@ -505,7 +505,6 @@ svm_rbf_tuned <- svm_rbf_workflow %>%
   tune_grid(tap_folds, svm_rbf_grid, control)
 ```
 
-
 ```{r eval=FALSE}
 # Pick optimal tuning params
 show_best(svm_rbf_tuned, metric = "accuracy")
@@ -524,7 +523,8 @@ accuracy(svm_rbf_predictions,sector_type, predicted)
 # accuracy = 0.636
 ```
 
-We also tried a random forest model where we tuned mtry and min_n, here we found the greatest accuracy of 0.674. 
+We also tried a random forest model where we tuned mtry and min_n, here we found the greatest accuracy of 0.674.
+
 ```{r, eval = FALSE}
 # Define model ----
 rf_model <- rand_forest(
@@ -549,7 +549,6 @@ rf_tuned <- rf_workflow %>%
   tune_grid(tap_folds, rf_grid, control)
 ```
 
-
 ```{r, eval = FALSE}
 # Pick optimal tuning params
 show_best(rf_tuned, metric = "accuracy")
@@ -568,4 +567,8 @@ accuracy(rf_predictions,sector_type, predicted)
 # 0.674
 ```
 
+# Conclusion
 
+We concluded that the random forest model would provide the best results when it came to new data. After the initial work of factoring our data, we explored our various variables. We found dramatic skew in our outcome variable and many of our predictors. Some predictors were removed due to being highly correlated. One of our predictors, tap_sector_group, was removed due to it being perfectly correlated to our outcome variable, creating a 100% prediction accuracy. The accuracy dropped significantly but was much more accurate. Our recipe was adjusted with each model. Ultimately, the random forest model proved to be the most accurate.
+
+Being able to predict whether a college is public or private based on the amount of money it receives form the New York City government could allow us to better understand the influences of financial on student populations. One surprising thing we noticed is that public schools have a higher average income among its students but receive much higher levels of aid. This is an opportunity for further exploration.
