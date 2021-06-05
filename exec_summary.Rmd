@@ -93,7 +93,7 @@ tap_recipe <- recipe(sector_type ~ ., data = tap_train) %>%
 
 # Statement of Problem
 
-For our final project, we worked with data from New York City's TAP (Tuition Assistance Program). This is a grant given to New York's universities to support accessible and equitable education. We chose this dataset due to mutual interest in the topic and it having plenty of data to work with (\~288,000 rows). The dataset can be found [here](https://data.ny.gov/Education/Tuition-Assistance-Program-TAP-Recipients-Dollars-/2t78-bs45). We made this manageable by reducing the years that we looked at. The dataset provides information from the years 2000-2019. Our group decided to focus on the 2014-2019 5-year window. This still gave us a good chunk of data to work with while allowing us to create models based on the most recent distributions of this grant. This is useful not only for creating models that run in a shorter amount of time but also creating more relevant models. We picked the most recent set of years to hopefully create models that would better predict new data. Models created on the years 2014-2019 should be much better at predicting data from 2021 than models created on the years 2000-2005.
+For our final project, we worked with data from New York City's TAP (Tuition Assistance Program). This is a grant given to New York's universities to support accessible and equitable education. We chose this dataset due to mutual interest in the topic and it having plenty of data to work with (\~288,000 rows). The dataset can be found [here](https://data.ny.gov/Education/Tuition-Assistance-Program-TAP-Recipients-Dollars-/2t78-bs45). We made this manageable by reducing the years that we looked at. The dataset provides information from the years 2000-2019. Our group decided to focus on the 2014-2019 5-year window. This still gave us a good chunk of data to work with while allowing us to create models based on the most recent distributions of this grant. This is useful not only for creating models that run in a shorter amount of time but also creating more relevant models. Models created on the years 2014-2019 should be much better at predicting data from 2021 than models created on the years 2000-2005.
 
 Our outcome variable was called `sector_type` and has two distinct classes: Public or Private. We chose this classification problem to see if we could ***accurately*** predict the type of college or university based on dollar amounts of aid given to each recipient, as well as information regarding each recipients' family income, age group, level of study of students, and more. We removed some of our potential predictors, this is explained in our key points section.
 
@@ -117,12 +117,15 @@ tap_data %>% ggplot(aes(sector_type, fill = sector_type)) +
 
 ## Income Difference of Public vs. Private Sector Students
 
-The city of New York gives significantly more aid to public universities than private. This is to be expected as public universities are not funded by independent donors like private universities but rely more heavily on government resources to operate. What was unexpected is that the income of the students was, on average, slightly higher than the students who attended private sector schools. This could be caused by a large number of factors including there being a few high-income individuals in public-sector schools or a larger number of low-income students in private colleges and universities in New York due to the support systems they offer that are not offered by public colleges and universities. Either way, keeping in mind that the purpose of TAP is to assist with tuition, it is work exploring the reasoning behind the allocation of resources.
+The city of New York gives significantly more aid to public universities than private. This is to be expected as public universities are not funded by independent donors like private universities but rely more heavily on government resources to operate. What was unexpected is that the income of the students was, on average, slightly higher than the students who attended private sector schools. This could be caused by a large number of factors including there being a few high-income individuals in public-sector schools or a larger number of low-income students in private colleges and universities in New York due to the support systems they offer that are not offered by public colleges and universities. Either way, keeping in mind that the purpose of TAP is to assist with tuition, it is worth exploring the reasoning behind the allocation of resources.
 
 ```{r}
 ggplot(tap_data, aes(income, fill = sector_type)) +
   geom_histogram(bins = 20) +
-  theme_bw()
+  theme_bw() +
+  labs(
+    title = "Number of Grant Recepients by Income Bracket: Private vs. Public Institutions "
+  )
 ```
 
 ## High Correlation Between Predictor Variables
