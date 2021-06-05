@@ -1,6 +1,6 @@
 ---
 title: "Executive Summary"
-author: "Soteria Reid"
+author: "Natalie Ghidali, Soteria Reid, Rebecca Siems, and Daniella Ueki"
 date: "6/4/2021"
 output: 
   html_document:
