@@ -159,7 +159,7 @@ ggplot(tap_data, aes(tap_award_schedule)) +
   theme_bw()
 ```
 
-### TAP Degree or NonDegree
+### TAP Degree or Non-Degree
 
 Tap degree or non degree is extremely imbalanced, with far more counts of degree then non degree. This means that almost all programs in this dataset are degree granting.
 

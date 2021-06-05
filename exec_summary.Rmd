@@ -23,6 +23,74 @@ library(DT)
 library(xgboost)
 ```
 
+```{r message=FALSE, warning=FALSE, include=FALSE}
+# set seed
+set.seed(3948)
+
+# loading data
+tap_dat <- read.csv("data/tap_dat.csv")
+
+# cleaning data
+tap_dat <- read_csv("data/tap_dat.csv") %>% 
+  clean_names() %>%
+  filter(academic_year >= 2014) %>%
+  filter(tap_level_of_study != "STAP") %>% # only one observation of STAP so remove it
+  mutate(
+    level = factor(level),
+    tap_level_of_study = factor(tap_level_of_study),
+    sector_type = factor(sector_type),
+    tap_sector_group = factor(tap_sector_group),
+    recipient_age_group = ordered(recipient_age_group, 
+                                  levels = c("under age 22",  "age 22 - 25", "age 26 - 35",  "age 36 - 50",  "over age 50"),
+                                  labels = c("under_age_22",  "age_22_25", "age_26_35",  "age_36_50",  "over_age_50")),
+    tap_financial_status = factor(tap_financial_status),
+    tap_award_schedule = factor(tap_award_schedule),
+    tap_degree_or_non_degree = factor(tap_degree_or_non_degree),
+    tap_schedule_letter = factor(tap_schedule_letter),
+    income = as.numeric(sub(",","",str_extract(income_by_1_000_range, "\\d+,*\\d*")))
+  ) %>%
+  select(-income_by_1_000_range, -income_by_5_000_range, -income_by_10_000_range) %>%
+  select(-tap_sector_group)  # sector group is too similar to sector type
+
+tap_data <- read_csv("data/tap_dat.csv") %>% 
+  clean_names() %>%
+  mutate(
+    level = factor(level),
+    tap_level_of_study = factor(tap_level_of_study),
+    sector_type = factor(sector_type),
+    tap_sector_group = factor(tap_sector_group),
+    recipient_age_group = ordered(recipient_age_group, 
+                                  levels = c("under age 22",  "age 22 - 25", "age 26 - 35",  "age 36 - 50",  "over age 50")),
+    tap_financial_status = factor(tap_financial_status),
+    tap_award_schedule = factor(tap_award_schedule),
+    tap_degree_or_non_degree = factor(tap_degree_or_non_degree),
+    tap_schedule_letter = factor(tap_schedule_letter),
+    income = as.numeric(sub(",","",str_extract(income_by_1_000_range, "\\d+,*\\d*")))
+  ) %>%
+  select(-income_by_1_000_range, -income_by_5_000_range, -income_by_10_000_range) %>% 
+  filter(academic_year >= 2014)
+
+# splitting data
+tap_split <- initial_split(tap_dat, prop = .80, strata = sector_type)
+tap_train <- training(tap_split)
+tap_test <- testing(tap_split)
+
+# creating folds
+tap_folds <- vfold_cv(tap_train, v = 5, repeats = 3, strata = sector_type)
+
+# tap_schedule_letter has some very uncommon factor levels, we will need to bin them in our recipe
+count(tap_dat,tap_schedule_letter)
+
+# creating the recipe
+tap_recipe <- recipe(sector_type ~ ., data = tap_train) %>% 
+  # remove level since it is duplicating information already contained in TAP level of study
+  step_rm(level) %>%
+  # Collapse uncommon factor levels, experimentally, a higher threshold works better, but this is extra necessary for tap_schedule_letter, where levels F and G have only 2 observations each
+  step_other(all_nominal_predictors(), threshold = 0.05) %>%
+  step_dummy(all_nominal_predictors(), one_hot = TRUE) %>% 
+  step_normalize(all_numeric_predictors()) 
+```
+
 # Statement of Problem
 
 For our final project, we worked with data from New York City's TAP (Tuition Assistance Program). This is a grant given to New York's universities to support accessible and equitable education. We chose this dataset due to mutual interest in the topic and it having plenty of data to work with (\~288,000 rows). The dataset can be found [here](https://data.ny.gov/Education/Tuition-Assistance-Program-TAP-Recipients-Dollars-/2t78-bs45). We made this manageable by reducing the years that we looked at. The dataset provides information from the years 2000-2019. Our group decided to focus on the 2014-2019 5-year window. This still gave us a good chunk of data to work with while allowing us to create models based on the most recent distributions of this grant. This is useful not only for creating models that run in a shorter amount of time but also creating more relevant models. We picked the most recent set of years to hopefully create models that would better predict new data. Models created on the years 2014-2019 should be much better at predicting data from 2021 than models created on the years 2000-2005.
@@ -33,12 +101,57 @@ Our outcome variable was called `sector_type` and has two distinct classes: Publ
 
 ## Skewed Outcome Variable
 
+In our EDA, we discovered that our outcome variable was heavily skewed. There were far more variables classed as public sector schools than there were private. We ensured that this wouldn't affect our outcomes by stratifying both our folds and our data when we split it initially.
+
+```{r}
+tap_data %>% ggplot(aes(sector_type, fill = sector_type)) +
+  geom_bar() +
+  scale_fill_discrete(
+    guide = FALSE
+  ) +
+  labs(
+    title = "Institution Type: Private vs. Public"
+  ) +
+  theme_bw()
+```
+
 ## Income Difference of Public vs. Private Sector Students
 
 The city of New York gives significantly more aid to public universities than private. This is to be expected as public universities are not funded by independent donors like private universities but rely more heavily on government resources to operate. What was unexpected is that the income of the students was, on average, slightly higher than the students who attended private sector schools. This could be caused by a large number of factors including there being a few high-income individuals in public-sector schools or a larger number of low-income students in private colleges and universities in New York due to the support systems they offer that are not offered by public colleges and universities. Either way, keeping in mind that the purpose of TAP is to assist with tuition, it is work exploring the reasoning behind the allocation of resources.
 
+```{r}
+ggplot(tap_data, aes(income, fill = sector_type)) +
+  geom_histogram(bins = 20) +
+  theme_bw()
+```
+
 ## High Correlation Between Predictor Variables
+
+After running our initial model, we created a correlation matrix on our predictor variables. It showed us that a few of our predictors were highly correlated, and we removed the ones that had a correlation of .95 or higher. This was because they would have created little to no variance and thus carried no information for our models to use.
+
+```{r}
+correlations_data <- tap_recipe %>% 
+  prep() %>% 
+  bake(new_data = NULL) %>%
+  select(-sector_type)
+
+datatable(cor(correlations_data))
+```
 
 # Model Selection Summarized
 
-Overall, we were able to find that the random forest model gave us the highest accuracy.
+Overall, we were able to find that the random forest model gave us the highest accuracy. All of the models and their results can be found below:
+
+***Boosted Tree*** - .626
+
+***Nearest Neighbor*** - .509
+
+***SVM*** - .636
+
+***Random Forest*** - .674 (our final model)
+
+For our boosted tree model we adjusted the original recipe and re-ran it, but the prediction accuracy got worse. Here, we have put the better of the two as our result for the boosted tree.
+
+# Conclusion
+
+Over all, we were able to predict with 67% accuracy whether a university was private or public based on average student income level, the degree program, the age group of the recipient, etc. There was no demographic breakdown of the students, so there is no way for us to know if the demographics of the student body (other than socioeconomic status) impacts whether or not we can predict whether the school is public or private.
