@@ -437,9 +437,9 @@ datatable(arrange(xgb.importance(model=pull_workflow_fit(bt_results)$fit), desc(
 
 The variable importance chart highlights that the most usable interaction was income against financial status, we can keep this interaction and discard the rest.
 
-Rerunning the boosted tree model with just the interaction between income and financial status produced an accuracy of 0.626. We decided to move forward with this recipe and try to tune a few new models.
+Rerunning the boosted tree model with just the interaction between income and financial status produced a best resamples accuracy of 0.630 and test accuracy of 0.626. We decided to move forward with this recipe and try to tune a few new models.
 
-We tried a k nearest neighbors model where we tuned the number of neighbors, and achieved an accuracy of 0.509.
+We tried a k nearest neighbors model where we tuned the number of neighbors, and achieved a best resamples accuracy of 0.522 and test accuracy of 0.509.
 
 ```{r eval=FALSE}
 # Define model ----
@@ -483,7 +483,7 @@ accuracy(knn_predictions,sector_type, predicted)
 # 0.509
 ```
 
-We tried a support vector machine using a radial basis function and achieved an accuracy of 0.636.
+We tried a support vector machine using a radial basis function and achieved a resamples accuracy of 0.631 and test accuracy of 0.636.
 
 ```{r eval=FALSE}
 # Define model ----
@@ -523,7 +523,7 @@ accuracy(svm_rbf_predictions,sector_type, predicted)
 # accuracy = 0.636
 ```
 
-We also tried a random forest model where we tuned mtry and min_n, here we found the greatest accuracy of 0.674.
+We also tried a random forest model where we tuned mtry and min_n, here we found the greatest best resample accuracy of 0.702 and test accuract of 0.674.
 
 ```{r, eval = FALSE}
 # Define model ----
